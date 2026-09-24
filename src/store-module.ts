@@ -1,6 +1,5 @@
 import {
   ActionsFnParams,
-  AvailableAdapters,
   ModuleOptions,
   StoreModuleClass,
   StoreModuleOptions
@@ -20,22 +19,10 @@ import {
 } from './module'
 
 export default class StoreModule {
-  private isPinia: boolean
-  private isVuex: boolean
-
   constructor (private options: StoreModuleOptions) {
     if (!this.options.apiService) {
       throw new Error('Please, provide the "apiService"')
     }
-
-    const availableAdapters: AvailableAdapters = ['pinia', 'vuex']
-
-    if (!availableAdapters.includes('pinia')) {
-      throw new Error('Wrong adapter, available adapters are: "pinia"(default) or "vuex"')
-    }
-
-    this.isPinia = (this.options.adapter || 'pinia') === 'pinia'
-    this.isVuex = !this.isPinia
   }
 
   public createStoreModule (resource: string, options: ModuleOptions): StoreModuleClass {
@@ -49,15 +36,12 @@ export default class StoreModule {
 
     const actionsPayload: ActionsFnParams = {
       apiService: this.options.apiService,
-      isPinia: this.isPinia,
       idKey,
       options,
       resource
     }
 
     const store: StoreModuleClass = {
-      ...(this.isVuex && { namespaced: true }),
-
       state: () => {
         return {
           ...state(),

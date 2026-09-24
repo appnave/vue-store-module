@@ -1,37 +1,23 @@
 import {
-  ActionsFnHandlerTuple,
   ActionsFnParams,
   FetchSingleActionPayload,
   FetchSingleApiResponse,
   Item,
-  NamespacedState,
   State
 } from 'types'
 
 import { AxiosResponse } from 'axios'
 
 import { run } from '../../utils'
-import { getStateFromAction, getActionPayload } from '@bildvitta/store-adapter'
 
 export default (configParams: ActionsFnParams) => {
   return async function (
-    this: NamespacedState,
-    ...args: ActionsFnHandlerTuple<FetchSingleActionPayload>
+    this: State,
+    payload: FetchSingleActionPayload = {} as FetchSingleActionPayload
   ): Promise<AxiosResponse<FetchSingleApiResponse>> {
-    const {
-      apiService,
-      isPinia,
-      options,
-      resource,
-      idKey
-    } = configParams
+    const { apiService, options, resource, idKey } = configParams
 
-    const {
-      form,
-      id,
-      params,
-      url
-    } = getActionPayload(isPinia, ...args) as FetchSingleActionPayload
+    const { form, id, params, url } = payload
 
     const customURL = run(url || options.fetchSingleURL, { form, id })
     const automaticURL = form
@@ -44,17 +30,15 @@ export default (configParams: ActionsFnParams) => {
       const response = await apiService.get(normalizedURL, { params })
       const { result } = response.data
 
-      const state = getStateFromAction.call(this, { isPinia, resource }) as State
-
       if (result) {
-        const index = state.list.findIndex(
+        const index = this.list.findIndex(
           (item: Item) => item[idKey] === result[idKey]
         )
 
         if (~index) {
-          state.list.splice(index, 1, result)
+          this.list.splice(index, 1, result)
         } else {
-          state.list.push(result)
+          this.list.push(result)
         }
       }
 

@@ -2,7 +2,6 @@ import {
   ApiService,
   ItemOfItem,
   Item,
-  ActionsFnHandlerTuple,
   FetchSingleURL,
   RunCallbackFn,
 
@@ -39,7 +38,6 @@ import { AxiosResponse } from 'axios'
 export interface ActionsFnParams {
   apiService: ApiService,
   idKey: string
-  isPinia: boolean
   options: ModuleOptions
   resource: string
 }
@@ -83,7 +81,7 @@ export type PayloadActionType = (
 )
 
 export type ActionCallback<T, A> = (
-  ...args: ActionsFnHandlerTuple<T>
+  payload?: T
 ) => Promise<AxiosResponse<A>>
 
 export interface FactoryActions {
