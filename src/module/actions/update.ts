@@ -1,8 +1,6 @@
 import {
-  ActionsFnHandlerTuple,
   ActionsFnParams,
   Item,
-  NamespacedState,
   UpdateActionPayload,
   UpdateApiResponse,
   State
@@ -11,41 +9,28 @@ import {
 import { AxiosResponse } from 'axios'
 
 import { run } from '../../utils'
-import { getStateFromAction, getActionPayload } from '@bildvitta/store-adapter'
 
 export default (configParams: ActionsFnParams) => {
   return async function (
-    this: NamespacedState,
-    ...args: ActionsFnHandlerTuple<UpdateActionPayload>
+    this: State,
+    payload: UpdateActionPayload = {} as UpdateActionPayload
   ): Promise<AxiosResponse<UpdateApiResponse>> {
-    const {
-      apiService,
-      idKey,
-      isPinia,
-      options,
-      resource
-    } = configParams
+    const { apiService, idKey, options, resource } = configParams
 
-    const {
-      id,
-      payload,
-      url
-    } = getActionPayload(isPinia, ...args) as UpdateActionPayload
+    const { id, payload: body, url } = payload
 
     const customURL = run(url || options.updateURL, { id })
     const normalizedURL = customURL || `/${resource}/${id}/`
 
     try {
-      const response = await apiService.patch(normalizedURL, payload)
+      const response = await apiService.patch(normalizedURL, body)
       const { result } = response.data
 
-      const state = getStateFromAction.call(this, { isPinia, resource }) as State
-
-      for (const index in state.list) {
-        const item: Item = state.list[index]
+      for (const index in this.list) {
+        const item: Item = this.list[index]
 
         if (item[idKey] === result[idKey]) {
-          state.list.splice(+index, 1, { ...item, ...result })
+          this.list.splice(+index, 1, { ...item, ...result })
           break
         }
       }

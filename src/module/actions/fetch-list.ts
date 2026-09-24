@@ -1,21 +1,18 @@
 import {
   ActionsFnParams,
-  NamespacedState,
-  ActionsFnHandlerTuple,
   FetchListActionPayload,
   FetchListApiResponse,
   State
 } from 'types'
 
 import { AxiosResponse } from 'axios'
-import { getStateFromAction, getActionPayload } from '@bildvitta/store-adapter'
 
 export default (configParams: ActionsFnParams) => {
   return async function (
-    this: NamespacedState,
-    ...args: ActionsFnHandlerTuple<FetchListActionPayload>
+    this: State,
+    payload: FetchListActionPayload = {} as FetchListActionPayload
   ): Promise<AxiosResponse<FetchListApiResponse>> {
-    const { apiService, isPinia, options, resource } = configParams
+    const { apiService, options, resource } = configParams
 
     const {
       filters,
@@ -25,7 +22,7 @@ export default (configParams: ActionsFnParams) => {
       page,
       search,
       url
-    } = getActionPayload(isPinia, ...args) as FetchListActionPayload
+    } = payload
 
     const defaultPerPage = options.perPage || 36
 
@@ -43,13 +40,11 @@ export default (configParams: ActionsFnParams) => {
       const response = await apiService.get(normalizedURL, { params })
       const { results, count } = response.data
 
-      const state = getStateFromAction.call(this, { isPinia, resource }) as State
-
       increment && page > 1
-        ? state.list.push(...results)
-        : state.list = results || []
+        ? this.list.push(...results)
+        : this.list = results || []
 
-      state.totalPages = Math.ceil(count / defaultPerPage)
+      this.totalPages = Math.ceil(count / defaultPerPage)
 
       return response
     } catch (error) {

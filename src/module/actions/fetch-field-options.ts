@@ -1,29 +1,18 @@
 import {
   ActionsFnParams,
-  ActionsFnHandlerTuple,
   FetchFieldOptionsActionPayload,
   FetchFieldOptionsApiResponse
 } from 'types'
 
 import { AxiosResponse } from 'axios'
-import { getActionPayload } from '@bildvitta/store-adapter'
 
-export default function test (configParams: ActionsFnParams) {
+export default function fetchFieldOptions (configParams: ActionsFnParams) {
   return function (
-    ...args: ActionsFnHandlerTuple<FetchFieldOptionsActionPayload>
+    payload: FetchFieldOptionsActionPayload = {} as FetchFieldOptionsActionPayload
   ): Promise<AxiosResponse<FetchFieldOptionsApiResponse>> {
-    const {
-      apiService,
-      isPinia,
-      options,
-      resource
-    } = configParams
+    const { apiService, options, resource } = configParams
 
-    const {
-      params,
-      url,
-      field
-    } = getActionPayload(isPinia, ...args) as FetchFieldOptionsActionPayload
+    const { params, url, field } = payload
 
     const normalizedURL = url || options.fetchFieldOptionsURL || `/${resource}/options/${field}`
 

@@ -1,43 +1,31 @@
 import {
   ActionsFnParams,
-  NamespacedState,
-  ActionsFnHandlerTuple,
   CreateActionPayload,
   CreateApiResponse,
   State
 } from 'types'
 
 import { AxiosResponse } from 'axios'
-import { getStateFromAction, getActionPayload } from '@bildvitta/store-adapter'
 
 export default (configParams: ActionsFnParams) => {
   return async function (
-    this: NamespacedState,
-    ...args: ActionsFnHandlerTuple<CreateActionPayload>
+    this: State,
+    payload: CreateActionPayload = {} as CreateActionPayload
   ): Promise<AxiosResponse<CreateApiResponse>> {
-    const {
-      apiService,
-      isPinia,
-      options,
-      resource
-    } = configParams
+    const { apiService, options, resource } = configParams
 
-    const {
-      payload,
-      url
-    } = getActionPayload(isPinia, ...args) as CreateActionPayload
+    const { payload: body, url } = payload
 
     const normalizedURL = url || options.createURL || `/${resource}/`
 
     try {
-      const response = await apiService.post(normalizedURL, payload)
+      const response = await apiService.post(normalizedURL, body)
       const { result } = response.data
 
-      const state = getStateFromAction.call(this, { isPinia, resource }) as State
       const hasResult: boolean = !!Object.keys(result || {}).length
 
       if (hasResult) {
-        state.list.push(result)
+        this.list.push(result)
       }
 
       return response
